@@ -12,27 +12,28 @@
 </head>
 <body>
 	<div id="wrap">
-		<header class="d-flex">
-        <h1 class="ml-3">Marondalgram</h1>
-    </header>
+		<c:import url="/WEB-INF/jsp/include/header.jsp" />
 		<section class="contents d-flex justify-content-center">
 			<div class="join-box my-5">
 				<h1 class="text-center"></h1>
-				<input type="text" placeholder="아이디" class="form-control mt-4" id="idInput">
+				<div class="d-flex align-items-end">
+					<input type="text" placeholder="아이디" class="form-control mt-4" id="idInput">
+					<button type="button" class="btn btn-success h-75" id="isDuplicateBtn">중복확인</button>
+				</div>
+				
+				<div id="duplicateText" class="d-none sm text-danger">사용이 불가능한 아이디 입니다.</div>
+				<div id="avalialbeText" class="d-none sm text-success">사용이 가능한 아이디 입니다.</div>
 				<input type="password" placeholder="비밀번호" class="form-control mt-2" id="passwordInput">
 				<input type="password" placeholder="비밀번호 확인" class="form-control mt-2" id="passwordConfirmInput">
 				<input type="text" placeholder="이름" class="form-control mt-2" id="nameInput">
 				<input type="text" placeholder="이메일" class="form-control mt-2" id="emailInput">
-				<button type="button" class="btn btn-primary mt-3" id="signUpBtn">회원가입</button>
+				<button type="button" class="btn btn-info btn-block mt-3" id="signUpBtn">회원가입</button>
 				
 			</div>
 		
 		</section>
-		<footer class="d-flex align-items-center justify-content-center">
-			<div>
-				Copyright @ marondalgram 2021			
-			</div>
-		</footer>
+		<hr>
+		<c:import url="/WEB-INF/jsp/include/footer.jsp" />
 	
 	
 	</div>
@@ -43,6 +44,54 @@
 
 	<script>
 		$(document).ready(function() {
+				var isChecked = false;
+				var isDuplicateId = true;
+				
+				$("#loginIdInput").on("inpiut", function() {
+					// 중복확인과 관련된 모든 상황을 초기화 한다.
+					isChecked = false;
+					isDuplicateId = true;
+					
+					$("#avalialbeText").addClass("d-none");
+					$("#duplicateText").addClass("d-none");
+					
+					
+				});
+				
+				$("#isDuplicateBtn").on("click", function() {
+					let id = $("#idInput").val();
+					
+					if(id == "") {
+						alert("아이디를 입력세요");
+					}
+						
+					$.ajax({
+						type:"get"
+						, url:"/user/duplicate-id"
+					    , data:{"loginId":id}
+						, success:function(data) {
+							// 중복확인 했음
+							isChecked = true;
+							isDuplicateId = data.isDuplicate;  // isDuplicateId에담긴 값을 통해서 중복여부 확인 가능
+							
+							//중복됨
+							if(isDuplicateId) {
+								$("#duplicateText").removeClass("d-none");
+								$("#avalialbeText").addClass("d-none");
+								//alert("중복안됨!!");
+							} else { // 중복 안됨
+								$("#avalialbeText").removeClass("d-none");
+								$("#duplicateText").addClass("d-none");
+								//alert("악!!!");
+							}
+						}
+						, error:function() {
+							alert("중복 에러");
+						}
+					});	
+						
+				});
+			
 				$("#signUpBtn").on("click", function() {
 					let id = $("#idInput").val();
 					let password = $("#passwordInput").val();
@@ -52,6 +101,18 @@
 					
 					if(id == "") {
 						alert("아이디를 입력하세요");
+						return;
+					}
+					
+					// 중복확인 안한 경우
+					if(!isChecked) {
+						alert("아이디 중복확인을 해주세요");
+						return;
+					}
+					
+					// 중복확인 된 경우
+					if(isDuplicateId) {
+						alert("중복된 Idㅇ비니다.");
 						return;
 					}
 					
@@ -74,6 +135,9 @@
 						alert("이메일을 입력하세요");
 						return;
 					}
+					
+
+					
 					
 					$.ajax({
 						
